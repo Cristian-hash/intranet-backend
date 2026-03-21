@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/intranet_db
+    username: postgres
+    password: password
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+jwt:
+  secret: UnaClaveSecretaMuyLargaYSeguraParaNuestraIntranetEducativa2024_SUPER_BLINDADA_MAS_DE_64_CARACTERES!!!
+  expiration: 86400000
+
+server:
+  port: 8080
