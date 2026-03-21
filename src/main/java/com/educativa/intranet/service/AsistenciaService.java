@@ -16,9 +16,9 @@ public class AsistenciaService {
     private final AsistenciaRepository asistenciaRepository;
 
     @Transactional(readOnly = true)
-    public List<AsistenciaCalendarioDTO> obtenerCalendarioMensual(Long alumnoId, int anio, int mes) {
+    public List<AsistenciaCalendarioDTO> obtenerCalendarioMensual(Long usuarioId, int anio, int mes) {
         // Le pedimos al guardia todas las anotaciones de Febrero 2026
-        return asistenciaRepository.findByAlumnoAndMesExacto(alumnoId, anio, mes)
+        return asistenciaRepository.findByUsuarioAndMesExacto(usuarioId, anio, mes)
                 .stream()
                 .map(asist -> AsistenciaCalendarioDTO.builder()
                         .fecha(asist.getFecha())

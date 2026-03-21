@@ -18,6 +18,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ProfesorRepository profesorRepository;
     private final PadreRepository padreRepository;
     private final CursoRepository cursoRepository;
+    private final AsistenciaRepository asistenciaRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -97,6 +98,16 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("   ALUMNO:   alumno@colegio.edu | pass: alumno123");
             System.out.println("   PADRE:    padre@colegio.edu  | pass: padre123");
             System.out.println("==============================================\n");
+        }
+
+        // 6. Si hay usuarios pero no hay asistencias generadas, fabricamos 2 para el Frontend (Refenciado a Febrero 2026)
+        if (asistenciaRepository.count() == 0 && alumnoRepository.count() > 0) {
+            Alumno alumno = alumnoRepository.findAll().get(0);
+            Asistencia asist1 = Asistencia.builder().alumno(alumno).fecha(java.time.LocalDate.of(2026, 2, 5)).estado(EstadoAsistencia.AUSENTE).build();
+            Asistencia asist2 = Asistencia.builder().alumno(alumno).fecha(java.time.LocalDate.of(2026, 2, 6)).estado(EstadoAsistencia.PRESENTE).build();
+            asistenciaRepository.save(asist1);
+            asistenciaRepository.save(asist2);
+            System.out.println("✅ Asistencias Falsas Generadas: Alumno #1 faltó el 5 de Feb y vino el 6.");
         }
     }
 }
