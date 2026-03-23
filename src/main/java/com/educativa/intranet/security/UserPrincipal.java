@@ -16,6 +16,7 @@ public class UserPrincipal implements UserDetails {
     private Long id;
     private String email;
     private String password;
+    private boolean activo;
     private Collection<? extends GrantedAuthority> authorities;
 
     public static UserPrincipal create(Usuario usuario) {
@@ -24,14 +25,15 @@ public class UserPrincipal implements UserDetails {
                 usuario.getId(),
                 usuario.getEmail(),
                 usuario.getPassword(),
+                usuario.getActivo() == null ? true : usuario.getActivo(),
                 Collections.singletonList(authority)
         );
     }
 
     @Override public String getPassword() { return password; }
     @Override public String getUsername() { return email; }
-    @Override public boolean isAccountNonExpired() { return true; }
-    @Override public boolean isAccountNonLocked() { return true; }
-    @Override public boolean isCredentialsNonExpired() { return true; }
-    @Override public boolean isEnabled() { return true; }
+    @Override public boolean isAccountNonExpired() { return activo; }
+    @Override public boolean isAccountNonLocked() { return activo; }
+    @Override public boolean isCredentialsNonExpired() { return activo; }
+    @Override public boolean isEnabled() { return activo; }
 }

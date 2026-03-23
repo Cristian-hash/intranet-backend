@@ -25,6 +25,10 @@ public class Usuario {
     @Column(nullable = false)
     private Rol rol;
 
+    @Column
+    @Builder.Default
+    private Boolean activo = true;
+
     // Relaciones 1-1 con los perfiles
     @OneToOne(mappedBy = "usuario", cascade = CascadeType.ALL)
     private Alumno alumno;
