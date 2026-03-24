@@ -16,6 +16,8 @@ public class Profesor {
     @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false)
     private Usuario usuario;
 
+    private String especialidad;
+
     // Relación M-M que Hibernate convertirá en la tabla "profesor_curso" (profesor_id, curso_id)
     @ManyToMany
     @JoinTable(

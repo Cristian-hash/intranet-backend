@@ -16,6 +16,9 @@ public class Alumno {
     @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false)
     private Usuario usuario;
 
+    private String grado; // Ej: "3ro de Secundaria"
+    private java.time.LocalDate fechaNacimiento;
+
     // Relación asimétrica para que el Padre vea sus alumnos
     @ManyToOne
     @JoinColumn(name = "padre_id")

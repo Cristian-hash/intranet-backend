@@ -16,6 +16,9 @@ public class Padre {
     @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false)
     private Usuario usuario;
 
+    private String telefono;
+    private String direccion;
+
     @OneToMany(mappedBy = "padre")
     private List<Alumno> hijos;
 }
