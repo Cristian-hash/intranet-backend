@@ -1,6 +1,7 @@
 package com.educativa.intranet.service;
 
 import com.educativa.intranet.dto.MensajeCreateDTO;
+import com.educativa.intranet.dto.MensajeResponseDTO;
 import com.educativa.intranet.model.Mensaje;
 import com.educativa.intranet.model.Usuario;
 import com.educativa.intranet.repository.MensajeRepository;
@@ -16,33 +17,47 @@ public class ChatService {
 
     private final MensajeRepository mensajeRepository;
     private final UsuarioRepository usuarioRepository;
-    
-    // Inyectamos a nuestro vigilante
     private final ModeracionService moderacionService;
 
     @Transactional
-    public Mensaje enviarMensaje(Long emisorId, MensajeCreateDTO dto) {
-        Usuario emisor = usuarioRepository.findById(emisorId)
-                .orElseThrow(() -> new RuntimeException("Emisor inválido"));
-        Usuario receptor = usuarioRepository.findById(dto.getReceptorId())
-                .orElseThrow(() -> new RuntimeException("Receptor no encontrado"));
+    public MensajeResponseDTO enviarMensaje(Long emisorId, MensajeCreateDTO dto) {
+        Usuario emisor = obtenerUsuarioOArrojarError(emisorId, "Emisor");
+        Usuario receptor = obtenerUsuarioOArrojarError(dto.getReceptorId(), "Receptor");
 
-        // PASO 1: ORQUESTAR (Mover la maleta)
-        // El ChatService simplemente toma los datos y los graba para que el otro usuario los pueda leer.
+        Mensaje mensajeGuardado = asentarNuevoMensaje(emisor, receptor, dto.getContenido());
+        
+        // Delegamos asíncronamente (modo fantasma) al vigilante sin retrasar la respuesta
+        moderacionService.auditarMensajeEnSegundoPlano(mensajeGuardado);
+
+        return convertirHaciaDTO(mensajeGuardado);
+    }
+
+    // =====================================
+    // FUNCIONES PRIVADAS UNITARIAS (Clean Code)
+    // =====================================
+
+    private Usuario obtenerUsuarioOArrojarError(Long usuarioId, String tipo) {
+        return usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new RuntimeException("Error en Chat: El " + tipo + " con ID " + usuarioId + " no es válido."));
+    }
+
+    private Mensaje asentarNuevoMensaje(Usuario emisor, Usuario receptor, String contenido) {
         Mensaje mensaje = Mensaje.builder()
                 .emisor(emisor)
                 .receptor(receptor)
-                .contenido(dto.getContenido())
+                .contenido(contenido)
                 .fecha(LocalDateTime.now())
                 .build();
-                
-        mensaje = mensajeRepository.save(mensaje);
+        return mensajeRepository.save(mensaje);
+    }
 
-        // PASO 2: DELEGAR AL VIGILANTE EN MODO SILENCIOSO (Rayos X)
-        // Llamamos al motor, pero gracias a que es @Async, esta función no se bloquea a esperar.
-        // Avanza e inmediatamente le devuelve el "OK" al estudiante.
-        moderacionService.auditarMensajeEnSegundoPlano(mensaje);
-
-        return mensaje;
+    private MensajeResponseDTO convertirHaciaDTO(Mensaje mensaje) {
+        return MensajeResponseDTO.builder()
+                .id(mensaje.getId())
+                .emisorId(mensaje.getEmisor().getId())
+                .emisorNombre(mensaje.getEmisor().getNombre())
+                .contenido(mensaje.getContenido())
+                .fechaEntregado(mensaje.getFecha())
+                .build();
     }
 }

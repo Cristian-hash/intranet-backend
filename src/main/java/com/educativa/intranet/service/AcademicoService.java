@@ -12,9 +12,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -24,64 +25,80 @@ public class AcademicoService {
     private final AlumnoRepository alumnoRepository;
     private final MatriculaRepository matriculaRepository;
 
+    // =========================================================
+    // CASOS DE USO PRINCIPALES (Expuestos al Controller)
+    // =========================================================
+    
     @Transactional
     public List<MatriculaResponseDTO> matricularAlumnosMasivamente(MatriculaMasivaDTO dto) {
-        // 1. Verificar si existe el salón de clases (Curso)
-        Curso curso = cursoRepository.findById(dto.getCursoId())
-                .orElseThrow(() -> new RuntimeException("Regla Académica: El curso indicado no existe en la BD."));
+        Curso curso = obtenerCursoOArrojarError(dto.getCursoId());
 
-        List<MatriculaResponseDTO> matrículasExitosas = new ArrayList<>();
-
-        // 2. Recorremos tu saco de Alumnos (IDs que Angular te mandó)
-        for (Long alumnoId : dto.getAlumnoIds()) {
-            Alumno alumno = alumnoRepository.findById(alumnoId)
-                    .orElseThrow(() -> new RuntimeException("Ese perfil de Alumno (ID: " + alumnoId + ") no existe."));
-
-            // ¡REGLA DE ORO DE MATRÍCULAS! : Validar duplicados.
-            Optional<Matricula> matriculaExistente = matriculaRepository.findByAlumnoIdAndCursoId(alumnoId, curso.getId());
-            
-            if (matriculaExistente.isPresent()) {
-                // Si ya está matriculado, y está inactivo (retirado), se puede reactivar.
-                Matricula m = matriculaExistente.get();
-                if (!m.getActivo()) {
-                    m.setActivo(true);
-                    matriculaRepository.save(m);
-                    matrículasExitosas.add(mapearDTO(m));
-                }
-                // Si está activo, simplemente saltamos (o lanzamos error según la regla de negocio).
-                // Aquí optamos por ignorar duplicados para no romper el bucle entero.
-                continue; 
-            }
-
-            // 3. Crear Ficha de Matrícula (Entity puro)
-            Matricula nuevaMatricula = Matricula.builder()
-                    .alumno(alumno)
-                    .curso(curso)
-                    .build();
-
-            matriculaRepository.save(nuevaMatricula);
-            matrículasExitosas.add(mapearDTO(nuevaMatricula));
-        }
-
-        return matrículasExitosas;
+        return dto.getAlumnoIds().stream()
+                .map(alumnoId -> procesarMatriculaIndividual(alumnoId, curso))
+                .filter(Objects::nonNull) // Ignoramos a los alumnos que la función de abajo rechazó por duplicados
+                .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public List<MatriculaResponseDTO> verListaDeSalon(Long cursoId) {
-        // Retorna todos los estudiantes metidos en "Matemáticas de 3er Año"
         return matriculaRepository.findByCursoIdAndActivoTrue(cursoId).stream()
-                .map(this::mapearDTO)
-                .toList();
+                .map(this::convertirHaciaDTO)
+                .collect(Collectors.toList());
     }
 
-    private MatriculaResponseDTO mapearDTO(Matricula m) {
+    // =========================================================
+    // FUNCIONES PRIVADAS UNITARIAS (Clean Code)
+    // =========================================================
+
+    private MatriculaResponseDTO procesarMatriculaIndividual(Long alumnoId, Curso curso) {
+        Alumno alumno = obtenerAlumnoOArrojarError(alumnoId);
+        Optional<Matricula> matriculaExistente = matriculaRepository.findByAlumnoIdAndCursoId(alumnoId, curso.getId());
+
+        if (matriculaExistente.isPresent()) {
+            return manejarMatriculaExistente(matriculaExistente.get());
+        }
+
+        return asentarNuevaMatricula(alumno, curso);
+    }
+
+    private Curso obtenerCursoOArrojarError(Long cursoId) {
+        return cursoRepository.findById(cursoId)
+                .orElseThrow(() -> new RuntimeException("Regla Académica: El curso indicado no existe en la BD."));
+    }
+
+    private Alumno obtenerAlumnoOArrojarError(Long alumnoId) {
+        return alumnoRepository.findById(alumnoId)
+                .orElseThrow(() -> new RuntimeException("Ese perfil de Alumno (ID: " + alumnoId + ") no existe."));
+    }
+
+    private MatriculaResponseDTO manejarMatriculaExistente(Matricula matricula) {
+        // La responsabilidad pura de decidir qué hacer con un duplicado vive aquí.
+        if (!matricula.getActivo()) {
+            matricula.setActivo(true);
+            matriculaRepository.save(matricula);
+            return convertirHaciaDTO(matricula);
+        }
+        // Retornamos nulo si ya está activo. Así no agregamos copias a la respuesta JSON final.
+        return null;
+    }
+
+    private MatriculaResponseDTO asentarNuevaMatricula(Alumno alumno, Curso curso) {
+        Matricula nuevaMatricula = Matricula.builder()
+                .alumno(alumno)
+                .curso(curso)
+                .build();
+        matriculaRepository.save(nuevaMatricula);
+        return convertirHaciaDTO(nuevaMatricula);
+    }
+
+    private MatriculaResponseDTO convertirHaciaDTO(Matricula matricula) {
         return MatriculaResponseDTO.builder()
-                .matriculaId(m.getId())
-                .alumnoId(m.getAlumno().getId())
-                .nombreAlumno(m.getAlumno().getUsuario().getNombre()) // Saltamos dos puentes gracias a Hibernate!
-                .cursoNombre(m.getCurso().getNombre())
-                .fecha(m.getFechaMatricula())
-                .activo(m.getActivo())
+                .matriculaId(matricula.getId())
+                .alumnoId(matricula.getAlumno().getId())
+                .nombreAlumno(matricula.getAlumno().getUsuario().getNombre())
+                .cursoNombre(matricula.getCurso().getNombre())
+                .fecha(matricula.getFechaMatricula())
+                .activo(matricula.getActivo())
                 .build();
     }
 }

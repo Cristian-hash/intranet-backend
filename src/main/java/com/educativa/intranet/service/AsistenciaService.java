@@ -20,11 +20,18 @@ public class AsistenciaService {
         // Le pedimos al guardia todas las anotaciones de Febrero 2026
         return asistenciaRepository.findByUsuarioAndMesExacto(usuarioId, anio, mes)
                 .stream()
-                .map(asist -> AsistenciaCalendarioDTO.builder()
-                        .fecha(asist.getFecha())
-                        .dia(asist.getFecha().getDayOfMonth()) // Extraemos el número 5
-                        .estado(asist.getEstado().name()) // PRESENTE o AUSENTE
-                        .build())
+                .map(this::convertirHaciaDTO)
                 .collect(Collectors.toList());
+    }
+
+    // =====================================
+    // FUNCIONES PRIVADAS (CLEAN CODE)
+    // =====================================
+    private AsistenciaCalendarioDTO convertirHaciaDTO(com.educativa.intranet.model.Asistencia asist) {
+        return AsistenciaCalendarioDTO.builder()
+                .fecha(asist.getFecha())
+                .dia(asist.getFecha().getDayOfMonth())
+                .estado(asist.getEstado().name())
+                .build();
     }
 }

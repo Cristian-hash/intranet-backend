@@ -49,10 +49,7 @@ public class UsuarioService {
     // APLICACIÓN DEL BLOQUEO LÓGICO
     @Transactional
     public void cambiarEstado(Long id, boolean activo) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario inexistente."));
-        
-        // Literalmente le bajamos el switch. El JWT lo rechazará automáticamente a partir de hoy.
+        Usuario usuario = obtenerUsuarioOArrojarError(id);
         usuario.setActivo(activo);
         usuarioRepository.save(usuario);
     }
@@ -60,12 +57,17 @@ public class UsuarioService {
     // EL DIRECTOR RESETEA CONTRASEÑAS SIN PREGUNTAR LA ANTERIOR
     @Transactional
     public void resetearClave(Long id, PasswordResetDTO dto) {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario inexistente."));
-
-        // Se reescribe la contraseña pero pasando por la trituradora de hash (BCrypt).
+        Usuario usuario = obtenerUsuarioOArrojarError(id);
         usuario.setPassword(passwordEncoder.encode(dto.getNuevaPassword()));
         usuarioRepository.save(usuario);
+    }
+
+    // =====================================
+    // FUNCIONES PRIVADAS UNITARIAS (Clean Code)
+    // =====================================
+    private Usuario obtenerUsuarioOArrojarError(Long id) {
+        return usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Error: Usuario de RH inexistente (ID: " + id + ")."));
     }
 
     // Centralizamos la fábrica de Cajas de Cartón
