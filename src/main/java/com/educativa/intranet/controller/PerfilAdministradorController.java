@@ -1,7 +1,6 @@
 package com.educativa.intranet.controller;
 
-import com.educativa.intranet.dto.AlumnoPerfilCreateDTO;
-import com.educativa.intranet.dto.AlumnoPerfilResponseDTO;
+import com.educativa.intranet.dto.*;
 import com.educativa.intranet.service.PerfilAdministradorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +17,7 @@ public class PerfilAdministradorController {
 
     private final PerfilAdministradorService perfilService;
 
-    // La secretaria o el Director armando un perfil
+    // --- ALUMNOS ---
     @PostMapping("/alumno")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlumnoPerfilResponseDTO> estructurarPerfilAlumno(@Valid @RequestBody AlumnoPerfilCreateDTO dto) {
@@ -27,7 +26,33 @@ public class PerfilAdministradorController {
 
     @GetMapping("/alumno/listar")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<AlumnoPerfilResponseDTO>> consultarCuadroCompleto() {
+    public ResponseEntity<List<AlumnoPerfilResponseDTO>> consultarCuadroAlumnos() {
         return ResponseEntity.ok(perfilService.listarTodosLosAlumnosCompletos());
+    }
+
+    // --- PROFESORES ---
+    @PostMapping("/profesor")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProfesorPerfilResponseDTO> estructurarPerfilProfesor(@Valid @RequestBody ProfesorPerfilCreateDTO dto) {
+        return ResponseEntity.ok(perfilService.construirPerfilProfesor(dto));
+    }
+
+    @GetMapping("/profesor/listar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProfesorPerfilResponseDTO>> consultarCuadroProfesores() {
+        return ResponseEntity.ok(perfilService.listarTodosLosProfesoresCompletos());
+    }
+
+    // --- PADRES ---
+    @PostMapping("/padre")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PadrePerfilResponseDTO> estructurarPerfilPadre(@Valid @RequestBody PadrePerfilCreateDTO dto) {
+        return ResponseEntity.ok(perfilService.construirPerfilPadre(dto));
+    }
+
+    @GetMapping("/padre/listar")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<PadrePerfilResponseDTO>> consultarCuadroPadres() {
+        return ResponseEntity.ok(perfilService.listarTodosLosPadresCompletos());
     }
 }
