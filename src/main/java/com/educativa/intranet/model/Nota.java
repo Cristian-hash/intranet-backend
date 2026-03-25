@@ -23,6 +23,10 @@ public class Nota {
     @JoinColumn(name = "profesor_id", nullable = false)
     private Profesor profesor;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "periodo_id")
+    private Periodo periodo;
+
     @Column(nullable = false)
     private Double valor; // De 0.0 a 20.0
 }
