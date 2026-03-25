@@ -1,4 +1,4 @@
-package com.educativa.intranet.service;
+package com.educativa.intranet.service.academico;
 
 import com.educativa.intranet.dto.MatriculaMasivaDTO;
 import com.educativa.intranet.dto.MatriculaResponseDTO;
@@ -19,36 +19,23 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AcademicoService {
+public class MatriculaInscripcionServiceImpl implements IMatriculaInscripcionService {
 
     private final CursoRepository cursoRepository;
     private final AlumnoRepository alumnoRepository;
     private final MatriculaRepository matriculaRepository;
+    private final MatriculaMapper matriculaMapper; // SRP: Mapeo delegado
 
-    // =========================================================
-    // CASOS DE USO PRINCIPALES (Expuestos al Controller)
-    // =========================================================
-    
+    @Override
     @Transactional
     public List<MatriculaResponseDTO> matricularAlumnosMasivamente(MatriculaMasivaDTO dto) {
         Curso curso = obtenerCursoOArrojarError(dto.getCursoId());
 
         return dto.getAlumnoIds().stream()
                 .map(alumnoId -> procesarMatriculaIndividual(alumnoId, curso))
-                .filter(Objects::nonNull) // Ignoramos a los alumnos que la función de abajo rechazó por duplicados
+                .filter(Objects::nonNull) // Ignoramos a los rechazados por duplicados
                 .collect(Collectors.toList());
     }
-
-    @Transactional(readOnly = true)
-    public List<MatriculaResponseDTO> verListaDeSalon(Long cursoId) {
-        return matriculaRepository.findByCursoIdAndActivoTrue(cursoId).stream()
-                .map(this::convertirHaciaDTO)
-                .collect(Collectors.toList());
-    }
-
-    // =========================================================
-    // FUNCIONES PRIVADAS UNITARIAS (Clean Code)
-    // =========================================================
 
     private MatriculaResponseDTO procesarMatriculaIndividual(Long alumnoId, Curso curso) {
         Alumno alumno = obtenerAlumnoOArrojarError(alumnoId);
@@ -72,13 +59,11 @@ public class AcademicoService {
     }
 
     private MatriculaResponseDTO manejarMatriculaExistente(Matricula matricula) {
-        // La responsabilidad pura de decidir qué hacer con un duplicado vive aquí.
         if (!matricula.getActivo()) {
             matricula.setActivo(true);
             matriculaRepository.save(matricula);
-            return convertirHaciaDTO(matricula);
+            return matriculaMapper.convertirHaciaDTO(matricula);
         }
-        // Retornamos nulo si ya está activo. Así no agregamos copias a la respuesta JSON final.
         return null;
     }
 
@@ -88,17 +73,6 @@ public class AcademicoService {
                 .curso(curso)
                 .build();
         matriculaRepository.save(nuevaMatricula);
-        return convertirHaciaDTO(nuevaMatricula);
-    }
-
-    private MatriculaResponseDTO convertirHaciaDTO(Matricula matricula) {
-        return MatriculaResponseDTO.builder()
-                .matriculaId(matricula.getId())
-                .alumnoId(matricula.getAlumno().getId())
-                .nombreAlumno(matricula.getAlumno().getUsuario().getNombre())
-                .cursoNombre(matricula.getCurso().getNombre())
-                .fecha(matricula.getFechaMatricula())
-                .activo(matricula.getActivo())
-                .build();
+        return matriculaMapper.convertirHaciaDTO(nuevaMatricula);
     }
 }

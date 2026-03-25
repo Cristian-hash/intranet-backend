@@ -1,7 +1,9 @@
 package com.educativa.intranet.controller;
 
 import com.educativa.intranet.dto.*;
-import com.educativa.intranet.service.PerfilAdministradorService;
+import com.educativa.intranet.service.perfil.IAlumnoPerfilService;
+import com.educativa.intranet.service.perfil.IPadrePerfilService;
+import com.educativa.intranet.service.perfil.IProfesorPerfilService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,44 +17,46 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PerfilAdministradorController {
 
-    private final PerfilAdministradorService perfilService;
+    private final IAlumnoPerfilService alumnoService;
+    private final IProfesorPerfilService profesorService;
+    private final IPadrePerfilService padreService;
 
     // --- ALUMNOS ---
     @PostMapping("/alumno")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<AlumnoPerfilResponseDTO> estructurarPerfilAlumno(@Valid @RequestBody AlumnoPerfilCreateDTO dto) {
-        return ResponseEntity.ok(perfilService.construirPerfilAlumno(dto));
+        return ResponseEntity.ok(alumnoService.construirPerfilAlumno(dto));
     }
 
     @GetMapping("/alumno/listar")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<AlumnoPerfilResponseDTO>> consultarCuadroAlumnos() {
-        return ResponseEntity.ok(perfilService.listarTodosLosAlumnosCompletos());
+        return ResponseEntity.ok(alumnoService.listarTodosLosAlumnosCompletos());
     }
 
     // --- PROFESORES ---
     @PostMapping("/profesor")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProfesorPerfilResponseDTO> estructurarPerfilProfesor(@Valid @RequestBody ProfesorPerfilCreateDTO dto) {
-        return ResponseEntity.ok(perfilService.construirPerfilProfesor(dto));
+        return ResponseEntity.ok(profesorService.construirPerfilProfesor(dto));
     }
 
     @GetMapping("/profesor/listar")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ProfesorPerfilResponseDTO>> consultarCuadroProfesores() {
-        return ResponseEntity.ok(perfilService.listarTodosLosProfesoresCompletos());
+        return ResponseEntity.ok(profesorService.listarTodosLosProfesoresCompletos());
     }
 
     // --- PADRES ---
     @PostMapping("/padre")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PadrePerfilResponseDTO> estructurarPerfilPadre(@Valid @RequestBody PadrePerfilCreateDTO dto) {
-        return ResponseEntity.ok(perfilService.construirPerfilPadre(dto));
+        return ResponseEntity.ok(padreService.construirPerfilPadre(dto));
     }
 
     @GetMapping("/padre/listar")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<PadrePerfilResponseDTO>> consultarCuadroPadres() {
-        return ResponseEntity.ok(perfilService.listarTodosLosPadresCompletos());
+        return ResponseEntity.ok(padreService.listarTodosLosPadresCompletos());
     }
 }
