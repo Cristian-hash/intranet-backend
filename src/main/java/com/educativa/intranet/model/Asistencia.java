@@ -16,6 +16,10 @@ public class Asistencia {
     @JoinColumn(name = "alumno_id", nullable = false)
     private Alumno alumno;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "curso_id")
+    private Curso curso;
+
     @Column(nullable = false)
     private LocalDate fecha;
 

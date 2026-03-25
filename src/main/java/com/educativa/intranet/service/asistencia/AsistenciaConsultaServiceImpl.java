@@ -1,4 +1,4 @@
-package com.educativa.intranet.service;
+package com.educativa.intranet.service.asistencia;
 
 import com.educativa.intranet.dto.AsistenciaCalendarioDTO;
 import com.educativa.intranet.repository.AsistenciaRepository;
@@ -11,27 +11,18 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AsistenciaService {
+public class AsistenciaConsultaServiceImpl implements IAsistenciaConsultaService {
 
     private final AsistenciaRepository asistenciaRepository;
+    private final AsistenciaMapper asistenciaMapper; // Delegamos la creación del DTO a su experto (SRP)
 
+    @Override
     @Transactional(readOnly = true)
     public List<AsistenciaCalendarioDTO> obtenerCalendarioMensual(Long usuarioId, int anio, int mes) {
-        // Le pedimos al guardia todas las anotaciones de Febrero 2026
+        // Le pedimos al experto en bases de datos que extraiga las fechas exactas
         return asistenciaRepository.findByUsuarioAndMesExacto(usuarioId, anio, mes)
                 .stream()
-                .map(this::convertirHaciaDTO)
+                .map(asistenciaMapper::convertirHaciaDTO) // Pipeline muy limpio con uso de Metodos de Referencia
                 .collect(Collectors.toList());
-    }
-
-    // =====================================
-    // FUNCIONES PRIVADAS (CLEAN CODE)
-    // =====================================
-    private AsistenciaCalendarioDTO convertirHaciaDTO(com.educativa.intranet.model.Asistencia asist) {
-        return AsistenciaCalendarioDTO.builder()
-                .fecha(asist.getFecha())
-                .dia(asist.getFecha().getDayOfMonth())
-                .estado(asist.getEstado().name())
-                .build();
     }
 }
