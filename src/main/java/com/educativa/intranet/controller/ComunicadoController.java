@@ -3,7 +3,9 @@ package com.educativa.intranet.controller;
 import com.educativa.intranet.dto.comunicado.ComunicadoCreateDTO;
 import com.educativa.intranet.dto.comunicado.ComunicadoResponseDTO;
 import com.educativa.intranet.security.UserPrincipal;
-import com.educativa.intranet.service.ComunicadoService;
+import com.educativa.intranet.service.comunicado.IComunicadoConsultaService;
+import com.educativa.intranet.service.comunicado.IComunicadoLecturaService;
+import com.educativa.intranet.service.comunicado.IComunicadoPublicacionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -25,7 +27,9 @@ import java.util.List;
 @SecurityRequirement(name = "bearerAuth")
 public class ComunicadoController {
 
-    private final ComunicadoService comunicadoService;
+    private final IComunicadoPublicacionService publicacionService;
+    private final IComunicadoConsultaService consultaService;
+    private final IComunicadoLecturaService lecturaService;
 
     // Solo el dueño de la escuela publica
     @PostMapping("/publicar")
@@ -39,7 +43,7 @@ public class ComunicadoController {
     public ResponseEntity<String> publicarAnuncio(
             @AuthenticationPrincipal UserPrincipal admin,
             @Valid @RequestBody ComunicadoCreateDTO dto) {
-        comunicadoService.redactarComunicado(admin.getId(), dto);
+        publicacionService.redactarComunicado(admin.getId(), dto);
         return ResponseEntity.ok("Megáfono: Anuncio propagado con éxito.");
     }
 
@@ -51,7 +55,7 @@ public class ComunicadoController {
             @ApiResponse(responseCode = "403", description = "Token no proporcionado o inválido.")
     })
     public ResponseEntity<List<ComunicadoResponseDTO>> leerMuro(@AuthenticationPrincipal UserPrincipal usuarioLogueado) {
-        return ResponseEntity.ok(comunicadoService.obtenerMiMuroDeNoticias(usuarioLogueado.getId()));
+        return ResponseEntity.ok(consultaService.obtenerMiMuroDeNoticias(usuarioLogueado.getId()));
     }
 
     // El botón de "Entendido" en la interfaz de Angular
@@ -65,7 +69,7 @@ public class ComunicadoController {
     public ResponseEntity<String> reportarLectura(
             @AuthenticationPrincipal UserPrincipal usuarioLogueado,
             @PathVariable Long id) {
-        comunicadoService.firmarDeEnterado(usuarioLogueado.getId(), id);
+        lecturaService.firmarDeEnterado(usuarioLogueado.getId(), id);
         return ResponseEntity.ok("Firma electrónica de enterado guardada.");
     }
 }
