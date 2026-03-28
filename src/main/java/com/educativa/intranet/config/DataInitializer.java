@@ -7,6 +7,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 @Component
@@ -19,33 +20,58 @@ public class DataInitializer implements CommandLineRunner {
     private final PadreRepository padreRepository;
     private final CursoRepository cursoRepository;
     private final AsistenciaRepository asistenciaRepository;
+    private final PeriodoRepository periodoRepository;
+    private final AsignacionDocenteRepository asignacionDocenteRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     @Transactional
     public void run(String... args) throws Exception {
-        // Ejecutar solo si la base de datos está completamente vacía
         if (usuarioRepository.count() == 0) {
             System.out.println("\n==============================================");
-            System.out.println("🚀 GENERANDO DATOS DE PRUEBA (DATA.SQL ALTERNATIVE)");
+            System.out.println("🚀 GENERANDO DATOS DE PRUEBA (MODELO v2)");
             System.out.println("==============================================");
 
-            // 1. Crear Cursos Iniciales
-            Curso cursoMate = Curso.builder().nombre("Matemáticas Avanzadas").profesores(new ArrayList<>()).build();
-            Curso cursoHistoria = Curso.builder().nombre("Historia Universal").profesores(new ArrayList<>()).build();
-            cursoRepository.save(cursoMate);
-            cursoRepository.save(cursoHistoria);
+            // 1. Crear Periodo de prueba
+            Periodo periodo1 = Periodo.builder()
+                    .nombre("1er Bimestre 2026")
+                    .fechaInicio(LocalDate.of(2026, 3, 1))
+                    .fechaFin(LocalDate.of(2026, 4, 30))
+                    .activo(true)
+                    .build();
+            periodoRepository.save(periodo1);
 
-            // 2. Crear Administrador Maestro
+            // 2. Crear Cursos con grado + sección + año
+            Curso cursoMate1A = Curso.builder()
+                    .nombre("Matemáticas").grado("1ro").seccion("A").anio(2026)
+                    .profesores(new ArrayList<>())
+                    .build();
+            Curso cursoHistoria1A = Curso.builder()
+                    .nombre("Historia").grado("1ro").seccion("A").anio(2026)
+                    .profesores(new ArrayList<>())
+                    .build();
+            cursoRepository.save(cursoMate1A);
+            cursoRepository.save(cursoHistoria1A);
+
+            // 3. Crear Administrador (Director)
             Usuario admin = Usuario.builder()
-                    .nombre("Administrador Principal")
+                    .nombre("Director San Pedro")
                     .email("admin@colegio.edu")
                     .password(passwordEncoder.encode("admin123"))
                     .rol(Rol.ADMIN)
                     .build();
             usuarioRepository.save(admin);
 
-            // 3. Crear Perfil de Profesor
+            // 4. Crear Auxiliar
+            Usuario auxiliarUser = Usuario.builder()
+                    .nombre("Auxiliar García")
+                    .email("auxiliar@colegio.edu")
+                    .password(passwordEncoder.encode("auxiliar123"))
+                    .rol(Rol.AUXILIAR)
+                    .build();
+            usuarioRepository.save(auxiliarUser);
+
+            // 5. Crear Profesor + Perfil
             Usuario proUser = Usuario.builder()
                     .nombre("Profesor Einstein")
                     .email("profe@colegio.edu")
@@ -53,18 +79,27 @@ public class DataInitializer implements CommandLineRunner {
                     .rol(Rol.PROFESOR)
                     .build();
             usuarioRepository.save(proUser);
-            
+
             Profesor profesor = Profesor.builder()
                     .usuario(proUser)
+                    .especialidad("Matemáticas")
                     .cursos(new ArrayList<>())
                     .build();
-            // Regla Cumplida: Este profesor SOLAMENTE dicta Matemáticas, ¡no puede calificar Historia!
-            profesor.getCursos().add(cursoMate); 
+            profesor.getCursos().add(cursoMate1A);
             profesorRepository.save(profesor);
 
-            // 4. Crear Perfil de Padre
+            // 6. Crear AsignacionDocente (vincula profesor + curso + periodo)
+            AsignacionDocente asignacion = AsignacionDocente.builder()
+                    .profesor(profesor)
+                    .curso(cursoMate1A)
+                    .periodo(periodo1)
+                    .activa(true)
+                    .build();
+            asignacionDocenteRepository.save(asignacion);
+
+            // 7. Crear Padre + Perfil
             Usuario padreUser = Usuario.builder()
-                    .nombre("Juan Perez (Apoderado)")
+                    .nombre("Juan Pérez (Apoderado)")
                     .email("padre@colegio.edu")
                     .password(passwordEncoder.encode("padre123"))
                     .rol(Rol.PADRE)
@@ -76,9 +111,9 @@ public class DataInitializer implements CommandLineRunner {
                     .build();
             padreRepository.save(padre);
 
-            // 5. Crear Perfil de Alumno y Vincular a Padre
+            // 8. Crear Alumno con grado + sección
             Usuario alumnoUser = Usuario.builder()
-                    .nombre("Pedrito Perez (Alumno)")
+                    .nombre("Pedrito Pérez")
                     .email("alumno@colegio.edu")
                     .password(passwordEncoder.encode("alumno123"))
                     .rol(Rol.ALUMNO)
@@ -88,26 +123,37 @@ public class DataInitializer implements CommandLineRunner {
             Alumno alumno = Alumno.builder()
                     .usuario(alumnoUser)
                     .padre(padre)
+                    .grado("1ro")
+                    .seccion("A")
                     .build();
             alumnoRepository.save(alumno);
 
-            System.out.println("✅ Entorno de datos inicializado exitosamente.");
-            System.out.println("🔒 Credenciales para Swagger:");
-            System.out.println("   ADMIN:    admin@colegio.edu  | pass: admin123");
-            System.out.println("   PROFESOR: profe@colegio.edu  | pass: profe123");
-            System.out.println("   ALUMNO:   alumno@colegio.edu | pass: alumno123");
-            System.out.println("   PADRE:    padre@colegio.edu  | pass: padre123");
+            System.out.println("✅ Entorno de datos v2 inicializado exitosamente.");
+            System.out.println("🔒 Credenciales:");
+            System.out.println("   ADMIN:    admin@colegio.edu    | admin123");
+            System.out.println("   AUXILIAR: auxiliar@colegio.edu | auxiliar123");
+            System.out.println("   PROFESOR: profe@colegio.edu   | profe123");
+            System.out.println("   ALUMNO:   alumno@colegio.edu  | alumno123");
+            System.out.println("   PADRE:    padre@colegio.edu   | padre123");
             System.out.println("==============================================\n");
         }
 
-        // 6. Si hay usuarios pero no hay asistencias generadas, fabricamos 2 para el Frontend (Refenciado a Febrero 2026)
+        // Seed de asistencia de prueba
         if (asistenciaRepository.count() == 0 && alumnoRepository.count() > 0) {
             Alumno alumno = alumnoRepository.findAll().get(0);
-            Asistencia asist1 = Asistencia.builder().alumno(alumno).fecha(java.time.LocalDate.of(2026, 2, 5)).estado(EstadoAsistencia.AUSENTE).build();
-            Asistencia asist2 = Asistencia.builder().alumno(alumno).fecha(java.time.LocalDate.of(2026, 2, 6)).estado(EstadoAsistencia.PRESENTE).build();
+            Asistencia asist1 = Asistencia.builder()
+                    .alumno(alumno)
+                    .fecha(LocalDate.of(2026, 3, 5))
+                    .estado(EstadoAsistencia.AUSENTE)
+                    .build();
+            Asistencia asist2 = Asistencia.builder()
+                    .alumno(alumno)
+                    .fecha(LocalDate.of(2026, 3, 6))
+                    .estado(EstadoAsistencia.PRESENTE)
+                    .build();
             asistenciaRepository.save(asist1);
             asistenciaRepository.save(asist2);
-            System.out.println("✅ Asistencias Falsas Generadas: Alumno #1 faltó el 5 de Feb y vino el 6.");
+            System.out.println("✅ Asistencias de prueba generadas (Marzo 2026).");
         }
     }
 }

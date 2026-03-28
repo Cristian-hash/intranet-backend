@@ -33,4 +33,10 @@ public class AcademicoController {
     public ResponseEntity<List<MatriculaResponseDTO>> obtenerAlumnosDelCurso(@PathVariable Long cursoId) {
         return ResponseEntity.ok(consultaService.verListaDeSalon(cursoId));
     }
+
+    @GetMapping("/cursos")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> listarTodosLosCursos() {
+        return ResponseEntity.ok(consultaService.listarTodosLosCursos());
+    }
 }

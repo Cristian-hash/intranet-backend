@@ -33,7 +33,8 @@ public class AlumnoService {
                         .id(nota.getId())
                         .curso(nota.getCurso().getNombre())
                         .profesor(nota.getProfesor().getUsuario().getNombre())
-                        .valor(nota.getValor())
+                        .calificacion(nota.getCalificacion())
+                        .periodo(nota.getPeriodo() != null ? nota.getPeriodo().getNombre() : "Sin periodo")
                         .build())
                 .collect(Collectors.toList());
     }

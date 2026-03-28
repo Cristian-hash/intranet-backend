@@ -39,6 +39,7 @@ public class PerfilAdministradorService {
                 .usuario(usuario)
                 .padre(padreAsignado)
                 .grado(dto.getGrado())
+                .seccion(dto.getSeccion())
                 .fechaNacimiento(dto.getFechaNacimiento())
                 .build();
 

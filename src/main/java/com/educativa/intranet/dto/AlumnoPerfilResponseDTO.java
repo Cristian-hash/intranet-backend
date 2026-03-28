@@ -14,6 +14,7 @@ public class AlumnoPerfilResponseDTO {
     private String nombre; // Lo sacamos del Usuario para no enviar la tabla vacía
     private String correo;
     private String grado;
+    private String seccion;
     private LocalDate fechaNacimiento;
     private String nombrePadre; // Opcional para mostrar en la grilla de Angular
 }

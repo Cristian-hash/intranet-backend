@@ -5,7 +5,9 @@ import lombok.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "asistencias")
+@Table(name = "asistencias", uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"alumno_id", "fecha"}) // 1 asistencia por alumno por día
+})
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class Asistencia {
     @Id
@@ -16,14 +18,20 @@ public class Asistencia {
     @JoinColumn(name = "alumno_id", nullable = false)
     private Alumno alumno;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "curso_id")
-    private Curso curso;
-
     @Column(nullable = false)
     private LocalDate fecha;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private EstadoAsistencia estado;
+
+    // Auditoría: quién registró la asistencia (Auxiliar típicamente)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "registrado_por")
+    private Usuario registradoPor;
+
+    // Auditoría: quién corrigió (null si nunca se corrigió)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "corregido_por")
+    private Usuario corregidoPor;
 }

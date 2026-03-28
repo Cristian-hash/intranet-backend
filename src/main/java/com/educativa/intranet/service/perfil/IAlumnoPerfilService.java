@@ -7,4 +7,5 @@ import java.util.List;
 public interface IAlumnoPerfilService {
     AlumnoPerfilResponseDTO construirPerfilAlumno(AlumnoPerfilCreateDTO dto);
     List<AlumnoPerfilResponseDTO> listarTodosLosAlumnosCompletos();
+    List<AlumnoPerfilResponseDTO> listarPorGradoYSeccion(String grado, String seccion);
 }

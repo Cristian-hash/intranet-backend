@@ -27,6 +27,6 @@ public class Nota {
     @JoinColumn(name = "periodo_id")
     private Periodo periodo;
 
-    @Column(nullable = false)
-    private Double valor; // De 0.0 a 20.0
+    @Column(nullable = false, length = 2)
+    private String calificacion; // "AD", "A", "B", "C" — validado en el Service
 }

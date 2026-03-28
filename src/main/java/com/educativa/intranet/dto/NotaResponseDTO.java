@@ -11,5 +11,6 @@ public class NotaResponseDTO {
     private Long id;
     private String curso;
     private String profesor;
-    private Double valor;
+    private String calificacion; // "AD", "A", "B", "C"
+    private String periodo;      // Nombre del periodo (ej: "1er Bimestre 2026")
 }

@@ -6,4 +6,5 @@ import java.util.List;
 
 public interface IMatriculaConsultaService {
     List<MatriculaResponseDTO> verListaDeSalon(Long cursoId);
+    List<com.educativa.intranet.dto.CursoResponseDTO> listarTodosLosCursos();
 }

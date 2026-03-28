@@ -17,5 +17,7 @@ public class AlumnoPerfilCreateDTO {
     @NotBlank(message = "Debes asignar un grado al estudiante")
     private String grado;
 
+    private String seccion; // Ej: "A", "B"
+
     private LocalDate fechaNacimiento;
 }

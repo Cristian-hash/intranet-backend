@@ -16,7 +16,8 @@ public class Alumno {
     @JoinColumn(name = "usuario_id", referencedColumnName = "id", nullable = false)
     private Usuario usuario;
 
-    private String grado; // Ej: "3ro de Secundaria"
+    private String grado; // Ej: "3ro"
+    private String seccion; // Ej: "A"
     private java.time.LocalDate fechaNacimiento;
 
     // Relación asimétrica para que el Padre vea sus alumnos

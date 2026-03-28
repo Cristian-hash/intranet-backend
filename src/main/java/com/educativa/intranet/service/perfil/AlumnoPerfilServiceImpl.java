@@ -39,6 +39,7 @@ public class AlumnoPerfilServiceImpl implements IAlumnoPerfilService {
                 .usuario(usuario)
                 .padre(padreAsignado)
                 .grado(dto.getGrado())
+                .seccion(dto.getSeccion())
                 .fechaNacimiento(dto.getFechaNacimiento())
                 .build();
 
@@ -50,6 +51,14 @@ public class AlumnoPerfilServiceImpl implements IAlumnoPerfilService {
     @Transactional(readOnly = true)
     public List<AlumnoPerfilResponseDTO> listarTodosLosAlumnosCompletos() {
         return alumnoRepository.findAll().stream().map(this::mapearADTO).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AlumnoPerfilResponseDTO> listarPorGradoYSeccion(String grado, String seccion) {
+        return alumnoRepository.findByGradoAndSeccion(grado, seccion).stream()
+                .map(this::mapearADTO)
+                .collect(Collectors.toList());
     }
 
     private Usuario buscarYValidarUsuario(Long usuarioId, Rol rolEsperado) {
@@ -69,6 +78,7 @@ public class AlumnoPerfilServiceImpl implements IAlumnoPerfilService {
                 .nombre(al.getUsuario().getNombre())
                 .correo(al.getUsuario().getEmail())
                 .grado(al.getGrado())
+                .seccion(al.getSeccion())
                 .fechaNacimiento(al.getFechaNacimiento())
                 .nombrePadre(al.getPadre() != null ? al.getPadre().getUsuario().getNombre() : "Huérfano/No Asignado")
                 .build();

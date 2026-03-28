@@ -1,8 +1,9 @@
 package com.educativa.intranet.model;
 
 public enum Rol {
-    ADMIN,
-    PROFESOR,
+    ADMIN,      // Director: gestión total
+    PROFESOR,   // Docente: notas en sus cursos asignados
+    AUXILIAR,   // Toma y corrige asistencia diaria
     ALUMNO,
     PADRE
 }
